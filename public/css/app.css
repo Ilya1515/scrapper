@@ -1,4 +1,5 @@
 @import url(https://fonts.googleapis.com/css?family=Nunito);
+.vue-accordion{transition-timing-function:ease;transition-property:height;height:0;overflow:hidden}.vue-accordion__inner{display:table;width:100%}
 @charset "UTF-8";
 /*!
  * Bootstrap v5.1.3 (https://getbootstrap.com/)
@@ -11285,4 +11286,12 @@ textarea.form-control-lg {
   .d-print-none {
     display: none !important;
   }
+}
+.expand {
+  color: black;
+  overflow: hidden;
+  display: inline-block;
+  cursor: pointer;
+  width: 16px;
+  background-repeat: no-repeat;
 }

@@ -2,106 +2,99 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Models\User;
 use App\Models\Items;
+use App\Mail\emailDelivery;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Weidner\Goutte\GoutteFacade as Goutte;
+use Illuminate\Support\Facades\Mail;
+
 
 class MainController extends Controller
 {
+
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index()
     {
-        $items = Items::select('brand', 'price', 'name', 'old_price', 'description', 'url', 'image')->orderByDesc('price')->get();
+        $items = Items::select('brand', 'id', 'price', 'name', 'old_price', 'description', 'url', 'image')
+            ->orderByDesc('price')->get();
 
+        $brands = $this->getAllBrands();
+        $max_price = $items->max('price');
 
-        $brands = Items::select('brand')->distinct()->get();
+        $min_price = $items->min('price');
 
-        return ['items' => $items, 'brands' => $brands];
+        $data = [
+            'items' => $items,
+            'brands' => $brands,
+            'max_price' => $max_price,
+            'min_price' => $min_price
+        ];
+
+        return $data;
+    }
+    public function getAllBrands()
+    {
+        return Items::select('brand')->distinct()->get();
+    }
+    public function filter(Request $request)
+    {
+        $sort_flag = 'desc';
+        $brands = $this->getAllBrands();
+        if ($request->sort_flag == 2) {
+            $sort_flag = 'asc';
+        }
+
+        if (count($request->brand)) {
+
+            $brands =  $request->brand;
+        }
+        $items = DB::table('items')
+            ->where('price', '>=', $request->min_price)
+            ->where('price', '<=', $request->max_price)
+
+            ->whereIn('brand', $brands)
+
+            ->orderBy('price', $sort_flag)->get();
+        $max_price = $items->max('price');
+
+        $min_price = $items->min('price');
+        $data = [
+            'items' => $items,
+            'max_price' => $max_price,
+            'min_price' => $min_price
+        ];
+        return $data;
     }
 
-    public function brand(Request $request)
+    public function getBrand(Request $request)
     {
-        $items = Items::select('brand', 'price', 'name', 'old_price', 'description', 'url', 'image',  'store_name')->whereIn('brand', $request->all())->get();
-
+        $items = Items::select('brand', 'id', 'price', 'name', 'old_price', 'description', 'url', 'image',  'store_name')->whereIn('brand', $request->all())->get();
 
         return ['items' => $items];
     }
 
-    public function stores(Request $request)
+    public function getStores(Request $request)
     {
-        $items = Items::select('brand', 'price', 'name', 'old_price', 'description', 'url', 'image', 'store_name')->whereIn('store_name', $request->all())->get();
-
+        $items = Items::select('brand', 'price', 'name', 'old_price', 'description', 'url', 'image', 'store_name')
+            ->whereIn('store_name', $request->all())->get();
 
         return ['items' => $items];
     }
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function sendEmail($data)
     {
-        //
-    }
+        $users = User::select('email', 'email_delivery')
+            ->where('email_delivery', 1)->get();
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        foreach ($users as $recipient) {
+            Mail::to($recipient->email)->send(new emailDelivery($data));
+        }
     }
 }

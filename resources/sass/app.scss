@@ -1,8 +1,20 @@
 // Fonts
 @import url('https://fonts.googleapis.com/css?family=Nunito');
 
+@import '~@ztrehagem/vue-accordion/dist/vue-accordion.css';
+
 // Variables
 @import 'variables';
 
 // Bootstrap
 @import '~bootstrap/scss/bootstrap';
+
+.expand {
+    color: black;
+    overflow: hidden;
+
+    display: inline-block;
+    cursor: pointer;
+    width: 16px;
+    background-repeat: no-repeat;
+}

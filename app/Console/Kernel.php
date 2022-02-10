@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -15,7 +16,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $filePath = 'storage\logs\logcount.log';
+        $schedule->command("parse:site")->everyMinute()->appendOutputTo($filePath)->before(function () use ($filePath) {
+            File::put($filePath, '');
+        });
+
+        $contents = File::get($filePath);
+
+        $schedule->command("mail:send $contents")->everyMinute()->emailOutputTo(['taylor@example.com'], true);
     }
 
     /**
@@ -25,7 +33,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }

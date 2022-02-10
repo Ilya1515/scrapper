@@ -12,9 +12,22 @@
         </p>
         <div>
           <span class="itemOldPrice">{{ item.old_price }}</span>
-          <span class="itemNewPrice"> {{ item.price }} ₽</span>
+          <span class="itemNewPrice ml-2"> {{ item.price }} ₽</span>
         </div>
-        <a :href="item.url" class="btn btn-primary">Go somewhere</a>
+        <a :href="item.url" class="btn btn-primary">Перейти</a>
+
+        <span
+          v-if="!this.deleteFlag"
+          @click="$emit('add-wish', item.id)"
+          style="font-size: 30px; cursor: pointer"
+          >+</span
+        >
+        <span
+          v-else
+          @click="$emit('delete-wish', item.id)"
+          style="font-size: 30px; cursor: pointer"
+          >Удалить</span
+        >
       </div>
     </div>
   </div>
@@ -23,7 +36,7 @@
 <script>
 export default {
   name: "Item",
-  props: ["item"],
+  props: ["item", "deleteFlag"],
   data() {
     return {};
   },
@@ -33,8 +46,12 @@ export default {
 <style scoped>
 .itemOldPrice {
   text-decoration: line-through;
+  font-size: 17px;
+  line-height: 25px;
 }
 .itemNewPrice {
   color: #bf1429;
+  font-size: 17px;
+  line-height: 25px;
 }
 </style>
